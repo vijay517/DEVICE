@@ -2,6 +2,7 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import requests
 import json
+import csv
 
 ''' Global Variables'''
 #Device name
@@ -33,9 +34,10 @@ endpoint = "abno170pso3ez-ats.iot.us-east-2.amazonaws.com"
 # Function to publish payload to MQTT topic
 def publishToIoTTopic(myAWSIoTMQTTClient):
     print("Client connected to greengrass core device")
-    while True:
-        payload = input("Enter to send message to: ")
-        payload = {'name':'device'}
+    rawData = open('files/cement.csv','r')
+    cementData = csv.DictReader(rawData)
+    for payload in cementData:
+        input("Enter to send message to: ")
         myAWSIoTMQTTClient.publish(topic, json.dumps(payload), QoS)
 
 # Function to initialise MQTT client
@@ -73,7 +75,5 @@ ggCoreConnectivity = response['GGGroups'][0]['Cores'][0]['Connectivity'][1]
 #initialise mqtt client
 MQTT_Connect(ggCoreConnectivity['HostAddress'],ggCoreConnectivity['PortNumber'])
 
-if connectionStatus:
-    print("MQTT connection disconnected")
 
 
