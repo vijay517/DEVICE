@@ -3,6 +3,7 @@ from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import requests
 import json
 import csv
+import random
 
 ''' Global Variables'''
 #Device name
@@ -29,16 +30,23 @@ QoS = 0
 connectionStatus = False
 #endpoint address
 endpoint = "abno170pso3ez-ats.iot.us-east-2.amazonaws.com"
+#payload columns
+columns = ["ID","Cement","Blast_Furnace_Slag","Fly_Ash","Water","Superplasticizer","Coarse_Aggregate","Fine_Aggregate","Age","Compressive_Strength"]
 
 ''' Methods'''
 # Function to publish payload to MQTT topic
 def publishToIoTTopic(myAWSIoTMQTTClient):
     print("Client connected to greengrass core device")
-    rawData = open('files/cement.csv','r')
-    cementData = csv.DictReader(rawData)
+    cementData = (row for row in open('files/cement.csv','r'))
+    counter = 1
     for payload in cementData:
         input("Enter to send message to: ")
+        readings = next(cementData).split(",")
+        readings[-1] = readings[-1].strip('\n')
+        readings.insert(0,counter)
+        payload = dict(zip(columns,readings))
         myAWSIoTMQTTClient.publish(topic, json.dumps(payload), QoS)
+        counter+=1
 
 # Function to initialise MQTT client
 def MQTT_Connect(host,port):
