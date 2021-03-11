@@ -1,0 +1,8 @@
+#ignore certificates folder
+certificates
+
+#ignore vscode folder
+.vscode
+
+#ignore test.py
+test.py
