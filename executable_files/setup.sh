@@ -11,6 +11,19 @@ sudo date -s "${date}"
 echo "Running the setup_awscli bash script"
 ./setup_awscli.sh
 
+echo "Checking if the device is registerd. Else the device is registered in aws iot core"
+DEVICENAME=$(cat ~/Desktop/DEVICE/deviceinfo.txt | grep -m1 -B1 "DEVICENAME" | grep -Po 'DEVICENAME:\K.*')
+var=$(aws iot list-things | grep ${DEVICENAME}  )
+if [ -z "$var" ]
+then
+      echo "${DEVICENAME} is not registered"
+      ./setup_device.sh
+else
+      echo "${DEVICENAME} is registered"
+fi
+
+
 echo "Running the python script to connect with the greengrasscore"
 cd ..
-python3 connect.py
+pip3 install AWSIoTPythonSDK
+python3 connect_prescriptive.py

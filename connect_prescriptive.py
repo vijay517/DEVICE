@@ -5,6 +5,7 @@ import json
 import csv
 import random
 import pickle
+import time
 
 ''' Global Variables'''
 #Device name
@@ -56,7 +57,8 @@ def publishToIoTTopic(myAWSIoTMQTTClient):
     for i in range(1,rowNumber+1):next(cementData)
     
     for payload in cementData:
-        input("Enter to send message to: ")
+        #input("Enter to send message to: ")
+        time.sleep(1)
         readings = payload.split(",")
         readings[-1] = readings[-1].strip('\n')
         payload = dict(zip(columns,readings))

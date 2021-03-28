@@ -21,7 +21,7 @@ fi
 #--------------------------------------------------------------------------------------------------------
 
 #Creating a IoT thing in IoT core in aws
-DEVICENAME=$(cat deviceinfo.txt | grep -m1 -B1 "DEVICENAME" | grep -Po 'DEVICENAME:\K.*')
+DEVICENAME=$(cat ${ROOTDIR}/deviceinfo.txt | grep -m1 -B1 "DEVICENAME" | grep -Po 'DEVICENAME:\K.*')
 aws iot create-thing --thing-name $DEVICENAME
 
 #Create certificate and keys. After creating the keys, the certificate arn is stored for further use
