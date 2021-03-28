@@ -26,4 +26,5 @@ fi
 echo "Running the python script to connect with the greengrasscore"
 cd ..
 pip3 install AWSIoTPythonSDK
+~/Desktop/DEVICE/executable_files/display_msg.sh "SENDING CONCRETE DATA TO EDGE (PRESCRIPTIVE)"
 python3 connect_prescriptive.py
