@@ -1,12 +1,12 @@
 ''' Libraries'''
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-import os
 import requests
 import json
 import csv
 import random
 import pickle
 import time
+import os
 
 ''' Global Variables'''
 #Device name
@@ -22,7 +22,7 @@ rootcaPath = "certificates/root.ca.pem"
 #Used to loop through all Connectivity options from GG Core
 ggCoreConnectivityCount = 0
 #publish topic
-topic = 'greengrass/telemetry/prescriptive'
+topic = 'greengrass/telemetry/anomaly'
 #Build the Greengrass Discover URL
 greengrassDiscoverURL = 'https://greengrass-ats.iot.us-east-2.amazonaws.com' + ':8443/greengrass/discover/thing/' + deviceName
 #MQTT Client
@@ -34,45 +34,30 @@ connectionStatus = False
 #endpoint address
 endpoint = "abno170pso3ez-ats.iot.us-east-2.amazonaws.com"
 #payload columns
-columns = ["ID","Cement","Blast_Furnace_Slag","Fly_Ash","Water","Superplasticizer","Coarse_Aggregate","Fine_Aggregate","Age","Compressive_Strength"]
-#rowNumber
-rowNumber = None
+columns = ["timestamp","consumption"]
 
 ''' Methods'''
-#Function to return the last row number read.
-def GetRowNumber():
-    try:
-        with open('files/lastRowRead.p','rb') as f:
-            rowNumber = int(pickle.load(f))
-    except FileNotFoundError:
-        rowNumber = 1
-
-    return rowNumber
-
 # Function to publish payload to MQTT topic
 def publishToIoTTopic(myAWSIoTMQTTClient):
     print("Client connected to greengrass core device")
-    global rowNumber
-    rowNumber = GetRowNumber()
-    cementData = (row for row in open('files/cement.csv','r'))
-    for i in range(1,rowNumber+1):next(cementData)
+    anomalyData = (row for row in open('files/rec-center-hourly.csv','r'))
+    for i in range(3):next(anomalyData)
     
-    for payload in cementData:
+    for payload in anomalyData:
         #input("Enter to send message to: ")
         time.sleep(1)
         readings = payload.split(",")
         readings[-1] = readings[-1].strip('\n')
         payload = dict(zip(columns,readings))
         myAWSIoTMQTTClient.publish(topic, json.dumps(payload), QoS)
-        rowNumber = payload["ID"]
         print("Message Sent: ",payload,"\n")
 
 # Function to initialise MQTT client
 def MQTT_Connect(host,port):
     print(host,port)
     myAWSIoTMQTTClient = AWSIoTMQTTClient(deviceName)
-    myAWSIoTMQTTClient.configureEndpoint(host, port)
-    myAWSIoTMQTTClient.configureCredentials(caPath, keyPath, certPath)
+    myAWSIoTMQTTClient.configureEndpoint(endpoint, port)
+    myAWSIoTMQTTClient.configureCredentials(rootcaPath, keyPath, certPath)
     myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)
     connectionStatus =  myAWSIoTMQTTClient.connect()
     if connectionStatus:
@@ -101,13 +86,8 @@ with open(caPath,'w') as file:
 ggCoreConnectivity = response['GGGroups'][0]['Cores'][0]['Connectivity'][1]
 
 #initialise mqtt client. Save the rowNumber to the pickle file.
-try:
-    MQTT_Connect(ggCoreConnectivity['HostAddress'],ggCoreConnectivity['PortNumber'])
-except KeyboardInterrupt:
-    with open('files/lastRowRead.p','wb') as f:
-        rowNumber = int(rowNumber) + 1
-        pickle.dump(rowNumber,f)
-        print("\nrowNumber saved. Program terminated....")
+MQTT_Connect(ggCoreConnectivity['HostAddress'],ggCoreConnectivity['PortNumber'])
+
 
 
 
